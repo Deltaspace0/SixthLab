@@ -12,24 +12,26 @@ public class ConnectionReceiver {
     private final Selector selector;
     private final ServerSocketChannel serverSocketChannel;
     private final Function<SelectionKey, Boolean> ifReadableDefault;
+    private final long timeoutDefault;
     private final HashSet<Integer> keyHashCodes = new HashSet<>();
     private boolean working = true;
 
-    public ConnectionReceiver(int port, Function<SelectionKey, Boolean> ifReadableDefault) throws IOException {
+    public ConnectionReceiver(int port, Function<SelectionKey, Boolean> ifReadableDefault, long timeoutDefault) throws IOException {
         selector = Selector.open();
         serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.bind(new InetSocketAddress("localhost", port));
         serverSocketChannel.configureBlocking(false);
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
         this.ifReadableDefault = ifReadableDefault;
+        this.timeoutDefault = timeoutDefault;
     }
 
     public void run() throws IOException {
-        run(ifReadableDefault);
+        run(ifReadableDefault, timeoutDefault);
     }
 
-    public void run(Function<SelectionKey, Boolean> ifReadable) throws IOException {
-        selector.select();
+    public void run(Function<SelectionKey, Boolean> ifReadable, long timeout) throws IOException {
+        selector.select(timeout);
         Set<SelectionKey> selectedKeys = selector.selectedKeys();
         Iterator<SelectionKey> iterator = selectedKeys.iterator();
         while (iterator.hasNext()) {

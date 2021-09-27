@@ -1,34 +1,29 @@
 package server;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.nio.channels.CancelledKeyException;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        boolean multithread = false;
-        System.out.print("Однопоток или многопоток? [S/m] ");
-        Scanner quest = new Scanner(System.in);
-        if (quest.nextLine().equals("m")) {
-            System.out.println("ура");
-            multithread = true;
-        } else {
-            System.out.println("ладно :(");
-        }
         RequestHandler requestHandler = new RequestHandler();
         ConnectionReceiver connectionReceiver;
         try {
-            connectionReceiver = new ConnectionReceiver(4242, requestHandler::handle);
+            connectionReceiver = new ConnectionReceiver(4242, requestHandler::handle, 100);
         } catch (IOException exception) {
             System.out.println("Не смог инициализировать модуль приёма подключений:");
             exception.printStackTrace();
             return;
         }
-        if (multithread) {
-            Thread thread = new Thread(() -> {
-                Scanner scanner = new Scanner(System.in);
-                while (true) {
-                    String line = scanner.nextLine();
+        System.out.println("Выбран порт 4242");
+        String helpString = "Доступные команды: save, show, exit и help.";
+        System.out.println(helpString);
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        while (connectionReceiver.isWorking()) {
+            try {
+                if (br.ready()) {
+                   String line = br.readLine();
                     if (line.equals("save"))
                         requestHandler.forceSave();
                     if (line.equals("show"))
@@ -36,14 +31,11 @@ public class Main {
                     if (line.equals("exit")) {
                         requestHandler.forceSave();
                         connectionReceiver.shutdown();
-                        break;
+                    }
+                    if (line.equals("help")) {
+                        System.out.println(helpString);
                     }
                 }
-            });
-            thread.start();
-        }
-        while (connectionReceiver.isWorking()) {
-            try {
                 connectionReceiver.run();
             } catch (IOException exception) {
                 System.out.println("Произошла ошибка при исполнении основного цикла:");

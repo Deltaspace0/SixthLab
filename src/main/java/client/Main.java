@@ -1,5 +1,6 @@
 package client;
 
+import exceptions.InvalidFieldException;
 import exceptions.ShutdownException;
 import server.Response;
 
@@ -10,8 +11,30 @@ public class Main {
     private static ConnectionSender connectionSender;
     private static ObjectSender<Request> requestSender;
     private static ObjectReceiver<Response> responseReceiver;
+    private static String address;
+    private static Integer port;
 
     public static void main(String[] args) {
+        InputProvider<String> addressInputProvider = new InputProvider<>("Введите адрес (localhost): ", addressInput -> {
+            if (addressInput.trim().equals("")) {
+                return "localhost";
+            }
+            return addressInput;
+        });
+        InputProvider<Integer> portInputProvider = new InputProvider<>("Введите порт (4242): ", portInput -> {
+            if (portInput.trim().equals("")) {
+                return 4242;
+            }
+            int port;
+            try {
+                port = Integer.parseInt(portInput);
+            } catch (NumberFormatException exception) {
+                throw new InvalidFieldException("порт");
+            }
+            return port;
+        });
+        address = addressInputProvider.provide();
+        port = portInputProvider.provide();
         if (!connect())
             return;
         ClientCore clientCore = new ClientCore();
@@ -46,7 +69,7 @@ public class Main {
         connectionSender = null;
         while (connectionSender == null) {
             try {
-                connectionSender = new ConnectionSender(4242);
+                connectionSender = new ConnectionSender(address, port);
             } catch (IOException exception) {
                 System.out.println("Не смог установить соединение с сервером:");
                 exception.printStackTrace();
