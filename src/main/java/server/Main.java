@@ -7,7 +7,7 @@ import java.nio.channels.CancelledKeyException;
 
 public class Main {
     public static void main(String[] args) {
-        RequestHandler requestHandler = new RequestHandler();
+        RequestHandler requestHandler = new RequestHandler(new ServerCore(System.getenv("THETABLE")));
         ConnectionReceiver connectionReceiver;
         try {
             connectionReceiver = new ConnectionReceiver(4242, requestHandler::handle, 100);

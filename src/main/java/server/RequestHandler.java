@@ -12,8 +12,8 @@ public class RequestHandler {
     private final ObjectSender<Response> responseSender = new ObjectSender<>();
     private final ObjectReceiver<Request> requestReceiver = new ObjectReceiver<>();
 
-    public RequestHandler() {
-        serverCore = new ServerCore(System.getenv("THETABLE"));
+    public RequestHandler(ServerCore serverCore) {
+        this.serverCore = serverCore;
     }
 
     public boolean handle(SelectionKey key) {
